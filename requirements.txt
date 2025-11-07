@@ -1,0 +1,4 @@
+matplotlib==3.10.0
+pandas==2.2.3
+scikit-learn==1.7.2
+ydata-profiling==4.17.0
