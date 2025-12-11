@@ -124,3 +124,75 @@ def train_neural_network(
         plt.show()
 
     return model, history
+
+
+def visualize_3_param_grid_search_results(
+        param_1_int: Iterable,
+        param_1_name: str,
+        param_2_int: Iterable,
+        param_2_name: str,
+        param_3_float: Iterable,
+        param_3_name: str,
+        rmse: Iterable,
+    ) -> None:
+    """
+    Visualize 3-parameter grid search results with:
+      (1) 3D surface, where color corresponds to RMSE score
+      (2) 2D heatmap of RMSE on int x int grid for fixed float parameter slices
+
+    Args:
+        param_1_int (Iterable): Values of the integer parameter 1.
+        param_1_name (str): Name of the integer parameter 1.
+        param_2_int (Iterable): Values of the integer parameter 2.
+        param_2_name (str): Name of the integer parameter 2.
+        param_3_float (Iterable): Values of the float parameter 3.
+        param_3_name (str): Name of the float parameter 3.
+        rmse (Iterable): RMSE values.
+    """
+
+    p1 = np.array(param_1_int)
+    p2 = np.array(param_2_int)
+    p3 = np.array(param_3_float)
+    rmse = np.array(rmse)
+
+    # 3D scatter plot colored by RMSE
+
+    fig = plt.figure(figsize=(14, 6))
+    ax = fig.add_subplot(121, projection="3d")
+
+    sc = ax.scatter(p1, p2, p3, c=rmse, cmap="viridis", s=50)
+
+    ax.set_xlabel(param_1_name)
+    ax.set_ylabel(param_2_name)
+    ax.set_zlabel(param_3_name)
+    ax.set_title("Parameter space (color = RMSE)")
+    fig.colorbar(sc, ax=ax, shrink=0.5, label="RMSE")
+
+    # 2D heatmap by averaged LR slices
+
+    p1_grid = np.unique(p1)
+    p2_grid = np.unique(p2)
+
+    Z = np.full((len(p2_grid), len(p1_grid)), np.nan)
+
+    for i, p2_g in enumerate(p2_grid):
+        for j, p1_g in enumerate(p1_grid):
+            mask = (p1 == p1_g) & (p2 == p2_g)
+            if np.any(mask):
+                Z[i, j] = np.mean(rmse[mask])   # respective avg LR
+
+    ax2 = fig.add_subplot(122)
+
+    hmap = ax2.imshow(Z, origin="lower", cmap="viridis", aspect="auto")
+
+    ax2.set_xticks(range(len(p1_grid)))
+    ax2.set_yticks(range(len(p2_grid)))
+    ax2.set_xticklabels(p1_grid)
+    ax2.set_yticklabels(p2_grid)
+    ax2.set_xlabel(param_1_name)
+    ax2.set_ylabel(param_2_name)
+    ax2.set_title(f"2D Heatmap (RMSE averaged over {param_3_name})")
+    fig.colorbar(hmap, ax=ax2, shrink=0.5, label="RMSE")
+
+    plt.tight_layout()
+    plt.show()
