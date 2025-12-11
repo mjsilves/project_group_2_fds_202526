@@ -72,8 +72,11 @@ def train_neural_network(
 
     # Variables to hold the best model
     best_rmse = np.inf
+    best_rmse_train = np.inf
     best_weights = None
+
     history = []
+    history_train = []
 
     # Training loop
     for epoch in range(n_epochs):
@@ -107,23 +110,29 @@ def train_neural_network(
         rmse = float(mse) ** 0.5
         history.append(rmse)
 
+        y_pred_train = model(X_train)
+        mse_train = loss_fn(y_pred_train, y_train)
+        rmse_train = float(mse_train) ** 0.5
+        history_train.append(rmse_train)
+
         # In case of improvement, save model weights
         if rmse < best_rmse:
             best_rmse = rmse
+            best_rmse_train = rmse_train
             best_weights = copy.deepcopy(model.state_dict())
 
     # Restore best model weights found
     model.load_state_dict(best_weights)
 
     if print_results:
-        print(f"RMSE: {best_rmse:.4f}")
+        print(f"RMSE (train): {best_rmse_train:.4f}\nRMSE (test): {best_rmse:.4f}")
         plt.plot(history)
         plt.title("Model metrics evolution")
         plt.xlabel("Epoch")
         plt.ylabel("RMSE")
         plt.show()
 
-    return model, history
+    return model, history, history_train, best_rmse, best_rmse_train
 
 
 def visualize_3_param_grid_search_results(
